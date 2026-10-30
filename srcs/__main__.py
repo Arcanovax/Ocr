@@ -13,23 +13,37 @@ class Core:
         self.matrice = self.get_matrice(self.image)
         self.matrice = self.align(self.matrice)
         
-        h, w = self.matrice.shape
-        kernel = cv2.getStructuringElement(
-            cv2.MORPH_RECT, (1, 15)
-        )
-        y = cv2.morphologyEx(
-            self.matrice, cv2.MORPH_OPEN, kernel
-        )
-        kernel = cv2.getStructuringElement(
-                    cv2.MORPH_RECT, (15, 1)
-                )
-        x = cv2.morphologyEx(
-            self.matrice, cv2.MORPH_OPEN, kernel
-        )
-        self.matrice = x + y
+        self.matrice = self.crop(self.matrice)
+
         
         self.display_output(self.matrice)
         
+    def find_strong_lines(self, matrice):
+        h, w = matrice.shape
+        kernel = cv2.getStructuringElement(
+            cv2.MORPH_RECT, (1, 25)
+        )
+        y = cv2.morphologyEx(
+            matrice, cv2.MORPH_OPEN, kernel
+        )
+        kernel = cv2.getStructuringElement(
+                    cv2.MORPH_RECT, (25, 1)
+                )
+        x = cv2.morphologyEx(
+            matrice, cv2.MORPH_OPEN, kernel
+        )
+        return x + y    
+        
+    def crop(self, matrice):
+        lines = self.find_strong_lines(matrice)
+        ys, xs = np.where(lines != 0)
+        
+        x_min, x_max = xs.min(), xs.max()
+        y_min, y_max = ys.min(), ys.max()
+
+        matrice = matrice[y_min:y_max + 1, x_min:x_max + 1]
+        
+        return matrice
         
 
     def display_output(self, matrice):
@@ -88,31 +102,5 @@ class Core:
             if abs(angle) < 20:
                 angles.append(angle)
         return np.median(angles)
-    
-    
+   
 Core()
-    
-# ys, xs = np.where(matrice != 0)
-
-# x_min, x_max = xs.min(), xs.max()
-# y_min, y_max = ys.min(), ys.max()
-
-# crop = matrice[y_min:y_max + 1, x_min:x_max + 1]
-
-
-
-
-# print(horizontal)
-# cv2.imshow("Lignes horizontales", horizontal)
-
-
-# cv2.imshow('Edges', crop)
-
-
-
-# Redimensionner l'image
-# resized_image = cv2.resize(image, (width, height))
-
-# Faire pivoter l'image de 45 degrés
-# rotation_matrix = cv2.getRotationMatrix2D((width / 2, height / 2), 45, 1)
-# rotated_image = cv2.warpAffine(resized_image, rotation_matrix, (width, height))
